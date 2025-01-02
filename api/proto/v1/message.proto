@@ -1,2 +1,28 @@
+// используемая версия - proto3 для gRPC
+syntax = "proto3";
+
+// полный путь пакета (для GO)
+option go_package = "github.com/Yessentemir256/grpc-project/pkg/api/v1";
+
+// импортируем типы из другого proto (см.каталог third_party)
+import "google/protobuf/timestamp.proto";
+
+// определение сервиса
+service MessageService {
+    // определение метода в сервисе
+    rpc FindMessageByID (MessageRequest) returns (MessageResponse);
+}
+
+// описываем тип сообщения запроса
+message MessageRequest {
+    int64 id = 1;
+}
+
+// описываем тип сообщения ответа
+message MessageResponse {
+    int64 id = 1;
+    string content = 2;
+    google.protobuf.Timestamp created = 3;
+}
 
 
