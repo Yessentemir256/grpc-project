@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/Yessentemir256/grpc-project/cmd/server/app"
 	apiV1Pb "github.com/Yessentemir256/grpc-project/pkg/api/v1"
-	"github.com/Yessentemir256/grpc-project/server/app"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"log"
