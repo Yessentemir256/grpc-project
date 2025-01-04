@@ -11,6 +11,12 @@ import "google/protobuf/timestamp.proto";
 service MessageService {
     // определение метода в сервисе
     rpc FindMessageByID (MessageRequest) returns (MessageResponse);
+    // server streaming
+    rpc FindMessageByIdServerStream (MessageRequest) returns (stream MessageResponse);
+    // client streaming
+    rpc FindMessageByIdClientStream (stream MessageRequest) returns (MessageResponse);
+    // bidirectional streaming
+    rpc FindMessageByIdBiStream (stream MessageRequest) returns (stream MessageRequest);
 }
 
 // описываем тип сообщения запроса

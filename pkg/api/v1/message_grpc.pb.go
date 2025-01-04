@@ -21,7 +21,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MessageService_FindMessageByID_FullMethodName = "/MessageService/FindMessageByID"
+	MessageService_FindMessageByID_FullMethodName             = "/MessageService/FindMessageByID"
+	MessageService_FindMessageByIdServerStream_FullMethodName = "/MessageService/FindMessageByIdServerStream"
+	MessageService_FindMessageByIdClientStream_FullMethodName = "/MessageService/FindMessageByIdClientStream"
+	MessageService_FindMessageByIdBiStream_FullMethodName     = "/MessageService/FindMessageByIdBiStream"
 )
 
 // MessageServiceClient is the client API for MessageService service.
@@ -32,6 +35,12 @@ const (
 type MessageServiceClient interface {
 	// определение метода в сервисе
 	FindMessageByID(ctx context.Context, in *MessageRequest, opts ...grpc.CallOption) (*MessageResponse, error)
+	// server streaming
+	FindMessageByIdServerStream(ctx context.Context, in *MessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[MessageResponse], error)
+	// client streaming
+	FindMessageByIdClientStream(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[MessageRequest, MessageResponse], error)
+	// bidirectional streaming
+	FindMessageByIdBiStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[MessageRequest, MessageRequest], error)
 }
 
 type messageServiceClient struct {
@@ -52,6 +61,51 @@ func (c *messageServiceClient) FindMessageByID(ctx context.Context, in *MessageR
 	return out, nil
 }
 
+func (c *messageServiceClient) FindMessageByIdServerStream(ctx context.Context, in *MessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[MessageResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &MessageService_ServiceDesc.Streams[0], MessageService_FindMessageByIdServerStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[MessageRequest, MessageResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type MessageService_FindMessageByIdServerStreamClient = grpc.ServerStreamingClient[MessageResponse]
+
+func (c *messageServiceClient) FindMessageByIdClientStream(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[MessageRequest, MessageResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &MessageService_ServiceDesc.Streams[1], MessageService_FindMessageByIdClientStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[MessageRequest, MessageResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type MessageService_FindMessageByIdClientStreamClient = grpc.ClientStreamingClient[MessageRequest, MessageResponse]
+
+func (c *messageServiceClient) FindMessageByIdBiStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[MessageRequest, MessageRequest], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &MessageService_ServiceDesc.Streams[2], MessageService_FindMessageByIdBiStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[MessageRequest, MessageRequest]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type MessageService_FindMessageByIdBiStreamClient = grpc.BidiStreamingClient[MessageRequest, MessageRequest]
+
 // MessageServiceServer is the server API for MessageService service.
 // All implementations must embed UnimplementedMessageServiceServer
 // for forward compatibility.
@@ -60,6 +114,12 @@ func (c *messageServiceClient) FindMessageByID(ctx context.Context, in *MessageR
 type MessageServiceServer interface {
 	// определение метода в сервисе
 	FindMessageByID(context.Context, *MessageRequest) (*MessageResponse, error)
+	// server streaming
+	FindMessageByIdServerStream(*MessageRequest, grpc.ServerStreamingServer[MessageResponse]) error
+	// client streaming
+	FindMessageByIdClientStream(grpc.ClientStreamingServer[MessageRequest, MessageResponse]) error
+	// bidirectional streaming
+	FindMessageByIdBiStream(grpc.BidiStreamingServer[MessageRequest, MessageRequest]) error
 	mustEmbedUnimplementedMessageServiceServer()
 }
 
@@ -72,6 +132,15 @@ type UnimplementedMessageServiceServer struct{}
 
 func (UnimplementedMessageServiceServer) FindMessageByID(context.Context, *MessageRequest) (*MessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindMessageByID not implemented")
+}
+func (UnimplementedMessageServiceServer) FindMessageByIdServerStream(*MessageRequest, grpc.ServerStreamingServer[MessageResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method FindMessageByIdServerStream not implemented")
+}
+func (UnimplementedMessageServiceServer) FindMessageByIdClientStream(grpc.ClientStreamingServer[MessageRequest, MessageResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method FindMessageByIdClientStream not implemented")
+}
+func (UnimplementedMessageServiceServer) FindMessageByIdBiStream(grpc.BidiStreamingServer[MessageRequest, MessageRequest]) error {
+	return status.Errorf(codes.Unimplemented, "method FindMessageByIdBiStream not implemented")
 }
 func (UnimplementedMessageServiceServer) mustEmbedUnimplementedMessageServiceServer() {}
 func (UnimplementedMessageServiceServer) testEmbeddedByValue()                        {}
@@ -112,6 +181,31 @@ func _MessageService_FindMessageByID_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageService_FindMessageByIdServerStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(MessageRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(MessageServiceServer).FindMessageByIdServerStream(m, &grpc.GenericServerStream[MessageRequest, MessageResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type MessageService_FindMessageByIdServerStreamServer = grpc.ServerStreamingServer[MessageResponse]
+
+func _MessageService_FindMessageByIdClientStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(MessageServiceServer).FindMessageByIdClientStream(&grpc.GenericServerStream[MessageRequest, MessageResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type MessageService_FindMessageByIdClientStreamServer = grpc.ClientStreamingServer[MessageRequest, MessageResponse]
+
+func _MessageService_FindMessageByIdBiStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(MessageServiceServer).FindMessageByIdBiStream(&grpc.GenericServerStream[MessageRequest, MessageRequest]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type MessageService_FindMessageByIdBiStreamServer = grpc.BidiStreamingServer[MessageRequest, MessageRequest]
+
 // MessageService_ServiceDesc is the grpc.ServiceDesc for MessageService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -124,6 +218,23 @@ var MessageService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MessageService_FindMessageByID_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "FindMessageByIdServerStream",
+			Handler:       _MessageService_FindMessageByIdServerStream_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "FindMessageByIdClientStream",
+			Handler:       _MessageService_FindMessageByIdClientStream_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "FindMessageByIdBiStream",
+			Handler:       _MessageService_FindMessageByIdBiStream_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "message.proto",
 }
