@@ -31,11 +31,7 @@ func execute(addr string, certFile string) error {
 		log.Print(err)
 	}
 
-	defer func() {
-		if conn != nil {
-			conn.Close()
-		}
-	}()
+	defer conn.Close()
 
 	client := apiV1Pb.NewMessageServiceClient(conn)
 	ctx, _ := context.WithTimeout(context.Background(), time.Second)
