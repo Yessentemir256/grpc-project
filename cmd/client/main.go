@@ -21,7 +21,7 @@ func main() {
 }
 
 func execute(addr string, certFile string) error {
-	creds, err := credentials.NewClientTLSFromCert(certFile, "")
+	creds, err := credentials.NewClientTLSFromFile(certFile, "")
 	if err != nil {
 		log.Print(err)
 	}
